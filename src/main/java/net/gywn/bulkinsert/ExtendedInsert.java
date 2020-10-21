@@ -5,8 +5,8 @@ import java.util.*;
 
 public class ExtendedInsert {
 	public static long x, y;
-	public static final int rowCount = 10000;
-	public static final int batchSize = 100;
+	public static final int rowCount = 100000;
+	public static final int batchSize = 500;
 	public static final List<String[]> rows = new ArrayList<String[]>();
 	public static final String jdbcURL = "jdbc:mysql://10.5.5.11:3306/test"
 			+ "?autoReconnect=true"
@@ -26,113 +26,122 @@ public class ExtendedInsert {
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
-		// ===============================
+		// =====================================
 		// generate rows
-		// ===============================
+		// =====================================
 		begin("generate rows");
 		generateRows(rowCount);
 		end();
 		
+//
+//		// =====================================
+//		// autocommit true & false
+//		// =====================================
+//		{
+//			resetTable();
+//			String url = jdbcURL + "&rewriteBatchedStatements=true";
+//			Connection conn = DriverManager.getConnection(url, user, pass);
+//			PreparedStatement pstmt = conn.prepareStatement(insertQuery);
+//			begin("insert rows");
+//			for(int i = 0; i < rows.size(); i++) {
+//				String[] row = rows.get(i);
+//				pstmt.setString(1, row[0]);
+//				pstmt.setString(2, row[1]);
+//				pstmt.setString(3, row[2]);
+//				pstmt.execute();
+//			}
+//			end();
+//			pstmt.close();
+//			conn.close();
+//		}
+//		
+//		{
+//			resetTable();
+//			
+//			String url = jdbcURL;
+//			Connection conn = DriverManager.getConnection(url, user, pass);
+//			conn.setAutoCommit(false);
+//			
+//			PreparedStatement pstmt = conn.prepareStatement(insertQuery);
+//			begin("insert rows ("+batchSize+")");
+//			for(int i = 0; i < rows.size(); i++) {
+//				String[] row = rows.get(i);
+//				pstmt.setString(1, row[0]);
+//				pstmt.setString(2, row[1]);
+//				pstmt.setString(3, row[2]);
+//				pstmt.execute();
+//				if(i % batchSize == 0) {
+//					conn.commit();
+//				}
+//			}
+//			conn.commit();
+//			end();
+//			pstmt.close();
+//			conn.close();
+//		}
+//
+//		// =====================================
+//		// Batch insert
+//		// =====================================
+//		{
+//			resetTable();
+//			String url = jdbcURL;
+//			Connection conn = DriverManager.getConnection(url, user, pass);
+//			conn.setAutoCommit(false);
+//			
+//			PreparedStatement pstmt = conn.prepareStatement(insertQuery);
+//			begin("insert batch rows ("+batchSize+")");
+//			for(int i = 0; i < rows.size(); i++) {
+//				String[] row = rows.get(i);
+//				pstmt.setString(1, row[0]);
+//				pstmt.setString(2, row[1]);
+//				pstmt.setString(3, row[2]);
+//				pstmt.addBatch();
+//				pstmt.clearParameters();
+//				if(i % batchSize == 0) {
+//					pstmt.executeBatch();
+//					conn.commit();
+//				}
+//			}
+//			pstmt.executeBatch();
+//			conn.commit();
+//			end();
+//			pstmt.close();
+//			conn.close();
+//		}
+//
+//		// =====================================
+//		// Batch insert(extended)
+//		// =====================================
+//		{
+//			resetTable();
+//			String url = jdbcURL + "&rewriteBatchedStatements=true";
+//			Connection conn = DriverManager.getConnection(url, user, pass);
+//			
+//			PreparedStatement pstmt = conn.prepareStatement(insertQuery);
+//			begin("insert batch rows ("+batchSize+")");
+//			for(int i = 0; i < rows.size(); i++) {
+//				String[] row = rows.get(i);
+//				pstmt.setString(1, row[0]);
+//				pstmt.setString(2, row[1]);
+//				pstmt.setString(3, row[2]);
+//				pstmt.addBatch();
+//				pstmt.clearParameters();
+//				if(i % batchSize == 0) {
+//					pstmt.executeBatch();
+//				}
+//			}
+//			pstmt.executeBatch();
+//			end();
+//			pstmt.close();
+//			conn.close();
+//		}
 
-		// ===============================
-		// autocommit true & false
-		// ===============================
+		// =====================================
+		// Batch insert(extended) with 5 threads
+		// =====================================
 		{
-			resetTable();
-			String url = jdbcURL + "&rewriteBatchedStatements=true";
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			PreparedStatement pstmt = conn.prepareStatement(insertQuery);
-			begin("insert rows");
-			for(int i = 0; i < rows.size(); i++) {
-				String[] row = rows.get(i);
-				pstmt.setString(1, row[0]);
-				pstmt.setString(2, row[1]);
-				pstmt.setString(3, row[2]);
-				pstmt.execute();
-			}
-			end();
-			pstmt.close();
-			conn.close();
-		}
-		
-		{
-			resetTable();
-			
-			String url = jdbcURL;
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			conn.setAutoCommit(false);
-			
-			PreparedStatement pstmt = conn.prepareStatement(insertQuery);
-			begin("insert rows ("+batchSize+")");
-			for(int i = 0; i < rows.size(); i++) {
-				String[] row = rows.get(i);
-				pstmt.setString(1, row[0]);
-				pstmt.setString(2, row[1]);
-				pstmt.setString(3, row[2]);
-				pstmt.execute();
-				if(i % batchSize == 0) {
-					conn.commit();
-				}
-			}
-			conn.commit();
-			end();
-			pstmt.close();
-			conn.close();
-		}
-
-		{
-			resetTable();
-			String url = jdbcURL;
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			conn.setAutoCommit(false);
-			
-			PreparedStatement pstmt = conn.prepareStatement(insertQuery);
-			begin("insert batch rows ("+batchSize+")");
-			for(int i = 0; i < rows.size(); i++) {
-				String[] row = rows.get(i);
-				pstmt.setString(1, row[0]);
-				pstmt.setString(2, row[1]);
-				pstmt.setString(3, row[2]);
-				pstmt.addBatch();
-				pstmt.clearParameters();
-				if(i % batchSize == 0) {
-					pstmt.executeBatch();
-					conn.commit();
-				}
-			}
-			pstmt.executeBatch();
-			conn.commit();
-			end();
-			pstmt.close();
-			conn.close();
-		}
-
-		{
-			resetTable();
-			String url = jdbcURL + "&rewriteBatchedStatements=true";
-			Connection conn = DriverManager.getConnection(url, user, pass);
-			
-			PreparedStatement pstmt = conn.prepareStatement(insertQuery);
-			begin("insert batch rows ("+batchSize+")");
-			for(int i = 0; i < rows.size(); i++) {
-				String[] row = rows.get(i);
-				pstmt.setString(1, row[0]);
-				pstmt.setString(2, row[1]);
-				pstmt.setString(3, row[2]);
-				pstmt.addBatch();
-				pstmt.clearParameters();
-				if(i % batchSize == 0) {
-					pstmt.executeBatch();
-				}
-			}
-			pstmt.executeBatch();
-			end();
-			pstmt.close();
-			conn.close();
-		}
-
-		{
-			final int chunkSize = rowCount / 5; 
+			final int chunkSize = rowCount / 10; 
 			resetTable();
 			for(int i = 0; i < rows.size(); i+=chunkSize) {
 				final int pos = i; 
